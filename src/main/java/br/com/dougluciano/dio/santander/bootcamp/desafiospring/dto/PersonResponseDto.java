@@ -2,8 +2,10 @@ package br.com.dougluciano.dio.santander.bootcamp.desafiospring.dto;
 
 import br.com.dougluciano.dio.santander.bootcamp.desafiospring.model.Person;
 
+import java.util.UUID;
+
 public record PersonResponseDto(
-        Long id,
+        UUID id,
         String fullName,
         String phone,
         String email) {

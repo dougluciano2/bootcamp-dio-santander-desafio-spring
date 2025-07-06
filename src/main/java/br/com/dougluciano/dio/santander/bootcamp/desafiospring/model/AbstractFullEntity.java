@@ -1,5 +1,6 @@
 package br.com.dougluciano.dio.santander.bootcamp.desafiospring.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -13,8 +14,11 @@ import java.time.LocalDateTime;
 @MappedSuperclass
 abstract class AbstractFullEntity extends AbstractEntity {
 
+    @Column(name = "createdat")
     private LocalDateTime createdAt;
+    @Column(name = "updatedat")
     private LocalDateTime updatedAt;
+    @Column(name = "inuse")
     private boolean inUse = true;
 
     @PrePersist
