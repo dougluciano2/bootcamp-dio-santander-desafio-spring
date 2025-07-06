@@ -13,6 +13,7 @@ import lombok.Setter;
 @Entity
 public class Person extends AbstractFullEntity{
 
+
     private String fullName;
     private String phone;
     private String email;

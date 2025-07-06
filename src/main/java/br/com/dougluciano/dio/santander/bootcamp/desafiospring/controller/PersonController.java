@@ -1,10 +1,15 @@
 package br.com.dougluciano.dio.santander.bootcamp.desafiospring.controller;
 
+import br.com.dougluciano.dio.santander.bootcamp.desafiospring.dto.PersonRequestDto;
+import br.com.dougluciano.dio.santander.bootcamp.desafiospring.dto.PersonResponseDto;
 import br.com.dougluciano.dio.santander.bootcamp.desafiospring.model.Person;
 import br.com.dougluciano.dio.santander.bootcamp.desafiospring.service.PersonService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -18,28 +23,39 @@ public class PersonController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Person>> findAll(){
+    public ResponseEntity<List<PersonResponseDto>> findAll(){
         return ResponseEntity.ok(service.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Person> findById(Long id){
+    public ResponseEntity<PersonResponseDto> findById(@PathVariable Long id){
         return ResponseEntity.ok(service.findById(id));
     }
 
     @PostMapping
-    public ResponseEntity<Person> create(@RequestBody Person person){
-        return ResponseEntity.ok(service.create(person));
+    public ResponseEntity<PersonResponseDto> create(@Valid @RequestBody PersonRequestDto request){
+        var persist = service.create(request);
+
+        URI uriLocation = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(persist.id())
+                .toUri();
+
+        return ResponseEntity.created(uriLocation).body(persist);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Person> update(@PathVariable Long id, @RequestBody Person person){
-        return ResponseEntity.ok(service.update(id,person));
+    public ResponseEntity<PersonResponseDto> update(@PathVariable Long id, @Valid @RequestBody PersonRequestDto request){
+        var update = service.update(id, request);
+
+        return ResponseEntity.ok(update);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id){
+    public ResponseEntity<Void> delete(@PathVariable Long id){
         service.delete(id);
+
+        return ResponseEntity.noContent().build();
     }
 
 }
