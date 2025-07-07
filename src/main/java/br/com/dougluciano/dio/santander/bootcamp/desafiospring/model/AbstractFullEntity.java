@@ -19,7 +19,6 @@ abstract class AbstractFullEntity extends AbstractEntity {
     @Column(name = "updatedat")
     private LocalDateTime updatedAt;
     @Column(name = "inuse")
-    private boolean inUse = true;
 
     @PrePersist
     public void onPrePersist(){

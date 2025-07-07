@@ -2,6 +2,7 @@ package br.com.dougluciano.dio.santander.bootcamp.desafiospring.service;
 
 import br.com.dougluciano.dio.santander.bootcamp.desafiospring.dto.PersonRequestDto;
 import br.com.dougluciano.dio.santander.bootcamp.desafiospring.dto.PersonResponseDto;
+import br.com.dougluciano.dio.santander.bootcamp.desafiospring.model.Address;
 import br.com.dougluciano.dio.santander.bootcamp.desafiospring.model.Person;
 import br.com.dougluciano.dio.santander.bootcamp.desafiospring.repository.PersonRepository;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,7 +31,7 @@ public class PersonService {
     }
 
     @Transactional(readOnly = true)
-    public PersonResponseDto findById(Long id){
+    public PersonResponseDto findById(UUID id){
 
         return repository.findById(id)
                 .map(PersonResponseDto::new)
@@ -48,24 +50,65 @@ public class PersonService {
         person.setPhone(request.phone());
         person.setEmail(request.email());
 
+        mapAddressToPersist(request, person);
+
         var persist = repository.save(person);
 
         return new PersonResponseDto(persist);
     }
 
+    private void mapAddressToPersist(PersonRequestDto request, Person person) {
+        List<Address> addresses = request.address().stream().map(addressDto -> {
+            var address = new Address();
+            address.setStreet(addressDto.street());
+            address.setNumber(addressDto.number());
+            address.setComplement(addressDto.complement());
+            address.setNeighborhood(addressDto.neighborhood());
+            address.setCity(addressDto.city());
+            address.setState(addressDto.state());
+            address.setZipCode(addressDto.zipCode());
+            address.setPerson(person);
+            return address;
+        }).collect(Collectors.toList());
+    }
+
+
     @Transactional
-    public PersonResponseDto update(Long id, PersonRequestDto request){
+    public PersonResponseDto update(UUID id, PersonRequestDto request){
        Person persist = repository.findById(id)
                .orElseThrow(() -> new NoSuchElementException("Person #ID " + id + " not found"));
        persist.setFullName(request.fullName());
        persist.setEmail(request.email());
        persist.setPhone(request.phone());
 
-       return new PersonResponseDto(repository.save(persist));
+       /*
+       limpar a lista de endereços e re-adicionar para não gerar lixo eletronico
+       propriedade orphanRemoval=true na entidade permite isso.
+        */
+        persist.getAddresses().clear();
+
+        List<Address> newAddresses = request.address()
+                .stream()
+                .map(addressDto -> {
+                    var address = new Address();
+                    address.setStreet(addressDto.street());
+                    address.setNumber(addressDto.number());
+                    address.setComplement(addressDto.complement());
+                    address.setNeighborhood(addressDto.neighborhood());
+                    address.setCity(addressDto.city());
+                    address.setState(addressDto.state());
+                    address.setZipCode(addressDto.zipCode());
+                    address.setPerson(persist);
+                    return address;
+                }).collect(Collectors.toList());
+
+        var persisted = repository.save(persist);
+
+       return new PersonResponseDto(persisted);
     }
 
     @Transactional
-    public void delete(Long id){
+    public void delete(UUID id){
         Person toDelete = repository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException());
         repository.delete(toDelete);

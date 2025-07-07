@@ -11,6 +11,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/persons")
@@ -28,7 +29,7 @@ public class PersonController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PersonResponseDto> findById(@PathVariable Long id){
+    public ResponseEntity<PersonResponseDto> findById(@PathVariable UUID id){
         return ResponseEntity.ok(service.findById(id));
     }
 
@@ -45,14 +46,14 @@ public class PersonController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PersonResponseDto> update(@PathVariable Long id, @Valid @RequestBody PersonRequestDto request){
+    public ResponseEntity<PersonResponseDto> update(@PathVariable UUID id, @Valid @RequestBody PersonRequestDto request){
         var update = service.update(id, request);
 
         return ResponseEntity.ok(update);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id){
+    public ResponseEntity<Void> delete(@PathVariable UUID id){
         service.delete(id);
 
         return ResponseEntity.noContent().build();
