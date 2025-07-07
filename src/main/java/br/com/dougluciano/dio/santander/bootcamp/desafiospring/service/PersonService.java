@@ -8,6 +8,7 @@ import br.com.dougluciano.dio.santander.bootcamp.desafiospring.repository.Person
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -45,64 +46,22 @@ public class PersonService {
         }
 
         var person = new Person();
-        person.setId(null);
-        person.setFullName(request.fullName());
-        person.setPhone(request.phone());
-        person.setEmail(request.email());
 
-        mapAddressToPersist(request, person);
+        mapToEntity(request,person);
 
         var persist = repository.save(person);
 
         return new PersonResponseDto(persist);
     }
 
-    private void mapAddressToPersist(PersonRequestDto request, Person person) {
-        List<Address> addresses = request.address().stream().map(addressDto -> {
-            var address = new Address();
-            address.setStreet(addressDto.street());
-            address.setNumber(addressDto.number());
-            address.setComplement(addressDto.complement());
-            address.setNeighborhood(addressDto.neighborhood());
-            address.setCity(addressDto.city());
-            address.setState(addressDto.state());
-            address.setZipCode(addressDto.zipCode());
-            address.setPerson(person);
-            return address;
-        }).collect(Collectors.toList());
-    }
-
-
     @Transactional
     public PersonResponseDto update(UUID id, PersonRequestDto request){
        Person persist = repository.findById(id)
                .orElseThrow(() -> new NoSuchElementException("Person #ID " + id + " not found"));
-       persist.setFullName(request.fullName());
-       persist.setEmail(request.email());
-       persist.setPhone(request.phone());
 
-       /*
-       limpar a lista de endereços e re-adicionar para não gerar lixo eletronico
-       propriedade orphanRemoval=true na entidade permite isso.
-        */
-        persist.getAddresses().clear();
+       mapToEntity(request,persist);
 
-        List<Address> newAddresses = request.address()
-                .stream()
-                .map(addressDto -> {
-                    var address = new Address();
-                    address.setStreet(addressDto.street());
-                    address.setNumber(addressDto.number());
-                    address.setComplement(addressDto.complement());
-                    address.setNeighborhood(addressDto.neighborhood());
-                    address.setCity(addressDto.city());
-                    address.setState(addressDto.state());
-                    address.setZipCode(addressDto.zipCode());
-                    address.setPerson(persist);
-                    return address;
-                }).collect(Collectors.toList());
-
-        var persisted = repository.save(persist);
+       var persisted = repository.save(persist);
 
        return new PersonResponseDto(persisted);
     }
@@ -112,6 +71,37 @@ public class PersonService {
         Person toDelete = repository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException());
         repository.delete(toDelete);
+    }
+
+    private void mapToEntity(PersonRequestDto request, Person person){
+        // mapping dto to person
+        person.setFullName(request.fullName());
+        person.setPhone(request.phone());
+        person.setEmail(request.email());
+
+        /*
+        clear list to make sure just new addresses will be persisted
+         */
+        person.getAddresses().clear();
+
+        // check if addresses's list is null before processing
+        List<Address> addresses = (request.address() == null) ? Collections.emptyList() :
+                request.address().stream().map(addressDto ->{
+                    var address = new Address();
+                    address.setStreet(addressDto.street());
+                    address.setNumber(addressDto.number());
+                    address.setComplement(addressDto.complement());
+                    address.setNeighborhood(addressDto.neighborhood());
+                    address.setCity(addressDto.city());
+                    address.setState(addressDto.state());
+                    address.setZipCode(addressDto.zipCode());
+                    // linking address to person
+                    address.setPerson(person);
+                    return address;
+                }).collect(Collectors.toList());
+
+        // add all address to person's address attribute
+        person.getAddresses().addAll(addresses);
     }
 
 }
