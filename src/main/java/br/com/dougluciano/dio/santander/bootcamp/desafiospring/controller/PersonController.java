@@ -6,6 +6,7 @@ import br.com.dougluciano.dio.santander.bootcamp.desafiospring.model.Person;
 import br.com.dougluciano.dio.santander.bootcamp.desafiospring.service.PersonService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -23,16 +24,19 @@ public class PersonController {
         this.service = service;
     }
 
+    @PreAuthorize("hasRole('USER')")
     @GetMapping
     public ResponseEntity<List<PersonResponseDto>> findAll(){
         return ResponseEntity.ok(service.findAll());
     }
 
+    @PreAuthorize("hasRole('USER')")
     @GetMapping("/{id}")
     public ResponseEntity<PersonResponseDto> findById(@PathVariable UUID id){
         return ResponseEntity.ok(service.findById(id));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<PersonResponseDto> create(@Valid @RequestBody PersonRequestDto request){
         var persist = service.create(request);
@@ -45,6 +49,7 @@ public class PersonController {
         return ResponseEntity.created(uriLocation).body(persist);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<PersonResponseDto> update(@PathVariable UUID id, @Valid @RequestBody PersonRequestDto request){
         var update = service.update(id, request);
@@ -52,6 +57,7 @@ public class PersonController {
         return ResponseEntity.ok(update);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id){
         service.delete(id);

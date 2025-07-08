@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -42,6 +43,19 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
 
+        return new ResponseEntity<>(apiError,httpStatus);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiErrorDto> handleAAccessDeniedException(AccessDeniedException e, HttpServletRequest request){
+        var httpStatus = HttpStatus.FORBIDDEN;
+        var apiError = new ApiErrorDto(
+                LocalDateTime.now(),
+                httpStatus.value(),
+                httpStatus.getReasonPhrase(),
+                "Access denied. You have no permission to access this resource, contact the adminstrator.",
+                request.getRequestURI()
+        );
         return new ResponseEntity<>(apiError,httpStatus);
     }
 
