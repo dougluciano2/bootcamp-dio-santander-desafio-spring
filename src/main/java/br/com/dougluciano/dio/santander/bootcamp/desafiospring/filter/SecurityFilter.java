@@ -32,6 +32,9 @@ public class SecurityFilter extends OncePerRequestFilter {
         // 1 - Recupera o token que vem no cabeçalho da requisição
         var tokenJwt = recoverToken(request);
 
+        // ADICIONE ESTA LINHA PARA DEPURAÇÃO
+        System.out.println("--- Token Recebido do Header: [" + tokenJwt + "] ---");
+
         if (tokenJwt != null){
             //2 valida o token e extrai o nome do usuário
             var subject = tokenService.getSubject(tokenJwt);
@@ -59,7 +62,7 @@ public class SecurityFilter extends OncePerRequestFilter {
         // se o token não for nulo, então retira o "Bearer" do token
         if (authorizationHeader != null){
             // o token vem depois de "Bearer"
-            return authorizationHeader.replace("Bearer ", "");
+            return authorizationHeader.replace("Bearer ", "").trim();
         }
         return null;
     }

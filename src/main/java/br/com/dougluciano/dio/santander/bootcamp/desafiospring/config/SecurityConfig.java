@@ -4,9 +4,11 @@ import br.com.dougluciano.dio.santander.bootcamp.desafiospring.filter.SecurityFi
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import static org.springframework.security.config.Customizer.withDefaults;
 
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -72,20 +74,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService(){
-        // criando um usuario com o nome user e senha agesune1 e com permissão de USER para testes
-        var user = User.withUsername("user")
-                .password(passwordEncoder().encode("agesune1"))
-                .roles("USER")
-                .build();
-
-        // criando um usuario com o nome ADMIN e senha agesune2 e com permissão de USER E ADMIN para testes
-        var admin = User.withUsername("admin")
-                .password(passwordEncoder().encode("agesune2"))
-                .roles("USER", "ADMIN")
-                .build();
-
-        return new InMemoryUserDetailsManager(user, admin);
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
     }
 
 
