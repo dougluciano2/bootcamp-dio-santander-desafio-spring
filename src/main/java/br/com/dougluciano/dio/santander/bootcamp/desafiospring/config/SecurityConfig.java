@@ -1,5 +1,7 @@
 package br.com.dougluciano.dio.santander.bootcamp.desafiospring.config;
 
+import br.com.dougluciano.dio.santander.bootcamp.desafiospring.filter.SecurityFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -15,11 +17,23 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+
+    private static final String[] SWAGGER_WHITELIST = {
+            "/docs", "/swagger-ui/**", "/v3/api-docs/**"
+    };
+
+    private static final String[] WHITELIST_NO_AUTH_REQUIRED = {
+            "/login", "h2-console"
+    };
+
+    @Autowired
+    private SecurityFilter securityFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
@@ -37,12 +51,15 @@ public class SecurityConfig {
                 // regras de autorização para endipoints
                 .authorizeHttpRequests(auth -> auth
                         // autorizando acesso sem autenticação para o swagger (Acesso público)
-                        .requestMatchers("/docs", "swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers(SWAGGER_WHITELIST).permitAll()
+                        // autorizando acesso sem autenticação pela constante criada na classe
+                        .requestMatchers(WHITELIST_NO_AUTH_REQUIRED).permitAll()
                         // para outros endpoints, será necessário autenticação
                         .anyRequest().authenticated()
                 )
                 // possibilita a autenticação via postman passando o usuario e senha pelo cabeçalho por ex.
-                .httpBasic(withDefaults())
+                // 2. Adicione seu filtro para ser executado antes do filtro de autenticação padrão
+                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 

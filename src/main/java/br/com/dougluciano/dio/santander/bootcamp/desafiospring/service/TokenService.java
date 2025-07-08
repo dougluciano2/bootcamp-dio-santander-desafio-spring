@@ -20,7 +20,7 @@ public class TokenService {
     private String issue = "DougCompanyEmissor";
 
     // injetando a chave criada
-    @Value("${api.security.token-secret}")
+    @Value("${api.security.token.secret}")
     private String secretToken;
 
     private SecretKey getSigninKey(){
