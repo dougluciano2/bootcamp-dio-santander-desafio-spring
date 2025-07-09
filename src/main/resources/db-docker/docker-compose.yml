@@ -1,0 +1,32 @@
+# Versão do Docker Compose
+version: '3.8'
+
+# Definição dos serviços (containers)
+services:
+  # Nome do nosso serviço de banco de dados
+  postgres:
+    # Imagem oficial do PostgreSQL que será usada
+    image: postgres:16 # Usando uma versão específica e estável
+
+    # Nome do container para fácil identificação
+    container_name: desafio-spring-postgres
+
+    # Variáveis de ambiente para configurar o PostgreSQL
+    environment:
+      POSTGRES_USER: dev # Usuário que você pediu
+      POSTGRES_PASSWORD: dev@2024@1234 # Senha que você pediu
+      POSTGRES_DB: sa # Nome do banco de dados que você pediu
+
+    # Mapeamento de portas: <porta_no_seu_pc>:<porta_dentro_do_container>
+    # Isso permite que sua aplicação Spring na sua máquina acesse o banco no container.
+    ports:
+      - "5432:5432"
+
+    # Volume para persistir os dados do banco de dados
+    # Mesmo que você pare e remova o container, os dados serão mantidos.
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+# Definição dos volumes nomeados
+volumes:
+  postgres-data:
