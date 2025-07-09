@@ -24,13 +24,13 @@ public class PersonController {
         this.service = service;
     }
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @GetMapping
     public ResponseEntity<List<PersonResponseDto>> findAll(){
         return ResponseEntity.ok(service.findAll());
     }
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<PersonResponseDto> findById(@PathVariable UUID id){
         return ResponseEntity.ok(service.findById(id));

@@ -1,6 +1,7 @@
 package br.com.dougluciano.dio.santander.bootcamp.desafiospring.config;
 
 import br.com.dougluciano.dio.santander.bootcamp.desafiospring.filter.SecurityFilter;
+import org.flywaydb.core.Flyway;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,16 +27,16 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private static final String[] SWAGGER_WHITELIST = {
-            "/docs", "/swagger-ui/**", "/v3/api-docs/**"
-    };
-
     private static final String[] WHITELIST_NO_AUTH_REQUIRED = {
-            "/login", "h2-console"
+            "/login", "/docs", "/swagger-ui/**", "/v3/api-docs/**"
     };
 
     @Autowired
     private SecurityFilter securityFilter;
+
+    public SecurityConfig(SecurityFilter securityFilter, Flyway flyway) {
+        this.securityFilter = securityFilter;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
@@ -46,14 +47,14 @@ public class SecurityConfig {
                  e o uso de sessões e cookies, sendo uma API stateless, não precisamos disso
                  */
                 .csrf(csrf -> csrf.disable())
+                //Desabilita a proteção de frames (SEGURO APENAS EM DEV)
+                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
 
                 // configura a gestão de conexão como STATELESS, ou seja, sem guardar sessão
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 // regras de autorização para endipoints
                 .authorizeHttpRequests(auth -> auth
-                        // autorizando acesso sem autenticação para o swagger (Acesso público)
-                        .requestMatchers(SWAGGER_WHITELIST).permitAll()
                         // autorizando acesso sem autenticação pela constante criada na classe
                         .requestMatchers(WHITELIST_NO_AUTH_REQUIRED).permitAll()
                         // para outros endpoints, será necessário autenticação

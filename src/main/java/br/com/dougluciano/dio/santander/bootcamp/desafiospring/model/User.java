@@ -31,6 +31,11 @@ public class User extends AbstractFullEntity implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role roles;
 
+    @Override
+    public String getPassword(){
+        return this.password;
+    }
+
     // spring retorna a lista de permissões ou roles do usuario
     // o spring security espera que as roles comecem com o prefixo "ROLE_".
     @Override

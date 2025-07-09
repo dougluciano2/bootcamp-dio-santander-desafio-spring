@@ -19,6 +19,13 @@ public class AuthenticationService implements UserDetailsService {
         if (user == null) {
             throw new UsernameNotFoundException("User not found: " + username);
         }
+
+        // --- ADICIONE ESTAS LINHAS PARA DEPURAÇÃO ---
+        System.out.println("--- USUÁRIO ENCONTRADO NO BANCO ---");
+        System.out.println("Username: " + user.getUsername());
+        System.out.println("Password Hash (do banco): " + user.getPassword());
+        System.out.println("------------------------------------");
+        // -----------------------------------------
         return user;
     }
 }
