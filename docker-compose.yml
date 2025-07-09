@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  # Serviço da nossa API Spring Boot
+  api:
+    build: . # Constrói a imagem a partir do Dockerfile local
+    container_name: desafio-spring-api
+    ports:
+      - "8080:8080"
+    environment:
+      # --- Configuração de Conexão com um Banco de Dados EXTERNO ---
+      # Esta variável de ambiente aponta para o banco de dados rodando na sua máquina HOST
+      # 'host.docker.internal' é um nome de DNS especial que, de dentro de um container,
+      # aponta para o endereço IP da máquina que está hospedando o Docker.
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/sa
+      - SPRING_DATASOURCE_USERNAME=dev
+      - SPRING_DATASOURCE_PASSWORD=dev@2024@1234
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
