@@ -1,5 +1,5 @@
 # Nome do seu workflow
-name: CI - dio-api-spring
+name: CI - dio-api-spring-boot
 
 on:
   push:
