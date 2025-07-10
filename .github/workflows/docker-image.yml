@@ -1,40 +1,55 @@
-# Nome do seu workflow
-name: CI - dio-api-spring-boot
+# Nome do workflow
+name: CI/CD - Build and Deploy to Google Cloud Run
 
+# Gatilho: Executar sempre que houver um push na branch 'main'
 on:
   push:
     branches: [ "main" ]
 
+# Permissões que o workflow precisa para se autenticar no Google Cloud
+permissions:
+  contents: 'read'
+  id-token: 'write'
+
 jobs:
-  build-validation:
+  deploy:
+    name: Build and Deploy to Cloud Run
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
+      # Autentica no Google Cloud usando Workload Identity Federation (mais seguro)
+      # NOTA: Isso requer uma configuração prévia no GCP para funcionar.
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: 'google-github-actions/auth@v2'
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
 
-      - name: Cache Maven packages
-        uses: actions/cache@v4
+      # Este é o passo principal!
+      # Ele irá:
+      # 1. Construir a imagem Docker a partir do seu Dockerfile.
+      # 2. Enviar a imagem para o seu Artifact Registry.
+      # 3. Fazer o deploy da nova imagem no seu serviço do Cloud Run.
+      - name: Build and Deploy to Cloud Run
+        id: deploy
+        uses: 'google-github-actions/deploy-cloudrun@v2'
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          # O caminho da sua imagem no Artifact Registry que criamos
+          # Substitua 'seu-project-id' e 'desafio-spring-repo' se necessário
+          image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/desafio-spring-repo/desafio-spring-api
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+          # Nome que você dará ao seu serviço no Cloud Run
+          service: 'desafio-spring-api'
+          region: 'us-central1' # A mesma região do seu banco e repositório
 
-      - name: Build Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: false
-          tags: my-java-app:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # --- Variáveis de Ambiente para a Aplicação na Nuvem ---
+          # Aqui passamos os segredos do GitHub para a aplicação rodando no Cloud Run
+          env_vars: |
+            SPRING_DATASOURCE_URL=${{ secrets.DB_URL_PROD }}
+            SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USERNAME_PROD }}
+            SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD_PROD }}
+            API_SECURITY_TOKEN_SECRET=${{ secrets.API_SECURITY_TOKEN_SECRET }}
