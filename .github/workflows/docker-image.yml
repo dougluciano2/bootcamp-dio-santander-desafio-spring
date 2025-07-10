@@ -5,12 +5,10 @@ on:
     branches: [ "main" ]
 
 env:
-  # Define variáveis para serem usadas em todo o workflow
-  # Substitua 'seu-project-id' pelo ID do seu projeto no GCP
   GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   GCP_REGION: us-central1
-  GAR_REPOSITORY: desafio-spring-repo # Nome do seu repositório no Artifact Registry
-  SERVICE_NAME: desafio-spring-api # Nome do seu serviço no Cloud Run
+  GAR_REPOSITORY: desafio-spring-repo
+  SERVICE_NAME: desafio-spring-api
 
 permissions:
   contents: 'read'
@@ -34,20 +32,13 @@ jobs:
       - name: Configure Docker for GAR
         run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev
 
-      - name: Build Docker image
-        run: |-
-          docker build \
-            --tag "${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}" \
-            --tag "${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/${{ env.SERVICE_NAME }}:latest" \
-            .
-
-      - name: Push Docker image to GAR
-        run: |-
+      - name: Build and Push Docker image
+        run: |
+          docker build --tag "${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}" --tag "${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/${{ env.SERVICE_NAME }}:latest" .
           docker push --all-tags "${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/${{ env.SERVICE_NAME }}"
 
   deploy:
     name: Deploy to Cloud Run
-    # 'needs' garante que este job só rode se o 'build-and-push' for bem-sucedido
     needs: build-and-push
     runs-on: ubuntu-latest
 
@@ -61,17 +52,14 @@ jobs:
       - name: Deploy to Cloud Run
         uses: 'google-github-actions/deploy-cloudrun@v2'
         with:
-          # A imagem que acabamos de enviar para o Artifact Registry
           image: ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/${{ env.SERVICE_NAME }}:latest
           service: ${{ env.SERVICE_NAME }}
           region: ${{ env.GCP_REGION }}
-
           flags: >-
             --add-cloudsql-instances=${{ secrets.GCP_INSTANCE_CONNECTION_NAME }}
             --allow-unauthenticated
-
           env_vars: |
-            SPRING_DATASOURCE_URL=jdbc:postgresql:///sa?cloudSqlInstance=${{ secrets.GCP_INSTANCE_CONNECTION_NAME }}
+            SPRING_DATASOURCE_URL=jdbc:postgresql:///postgres?cloudSqlInstance=${{ secrets.GCP_INSTANCE_CONNECTION_NAME }}
             SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USERNAME_PROD }}
             SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD_PROD }}
             API_SECURITY_TOKEN_SECRET=${{ secrets.API_SECURITY_TOKEN_SECRET }}
