@@ -71,7 +71,7 @@ jobs:
             --allow-unauthenticated
 
           env_vars: |
-            SPRING_DATASOURCE_URL=${{ secrets.DB_URL_PROD }}
+            SPRING_DATASOURCE_URL=jdbc:postgresql:///sa?cloudSqlInstance=${{ secrets.GCP_INSTANCE_CONNECTION_NAME }}
             SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USERNAME_PROD }}
             SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD_PROD }}
             API_SECURITY_TOKEN_SECRET=${{ secrets.API_SECURITY_TOKEN_SECRET }}
