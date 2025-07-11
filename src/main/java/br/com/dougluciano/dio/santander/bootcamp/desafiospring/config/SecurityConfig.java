@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -15,6 +16,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -41,8 +47,7 @@ public class SecurityConfig {
                  e o uso de sessões e cookies, sendo uma API stateless, não precisamos disso
                  */
                 .csrf(csrf -> csrf.disable())
-                //Desabilita a proteção de frames (SEGURO APENAS EM DEV)
-                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
+                .cors(Customizer.withDefaults())
 
                 // configura a gestão de conexão como STATELESS, ou seja, sem guardar sessão
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -71,6 +76,40 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource(){
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        /*
+         Permite requisições de qualquer origem para o Swagger funcionar. Bom para ambiente de homologação
+         Em produção, é bom restringir somente ao front-end.
+         */
+        configuration.setAllowedOrigins(List.of("*"));
+        /*
+         * Permite requisições de todos os métodos HTTP para o swagger funcionar.
+         */
+        configuration.setAllowedMethods(List.of(
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE",
+                "OPTIONS",
+                "HEAD",
+                "TRACE",
+                "CONNECT"
+                ));
+        /*
+         * Permite todos os cabeçalhos
+         */
+        configuration.setAllowedHeaders(List.of("*"));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        // aplica a configuração do CORS para os paths da aplicação
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
     }
 
 
