@@ -27,8 +27,7 @@ Este projeto é uma API RESTful desenvolvida com Spring Boot Java, com o objetiv
 Abaixo estão os diagramas UML das principais classes do projeto. Eles representam as entidades de domínio, os Data Transfer Objects (DTOs), e as camadas de serviço e controle.
 
 
-<details>
-  <summary><b>Clique para expandir o Diagrama de Classes</b></summary>
+<b>Diagrama de Classes</b>
 
   ```mermaid
 classDiagram
@@ -119,6 +118,8 @@ classDiagram
     AuthenticationService ..> UserRepository : finds user
     UserRepository --> User : manages
 ```
+
+
 
 ## Tecnologias Utilizadas
 
@@ -211,3 +212,58 @@ A documentação completa dos endpoints, com exemplos, está disponível no Swag
 - `GET /persons`: Retorna todas as pessoas (requer role `USER` ou `ADMIN`).
 - `POST /persons`: Cria uma nova pessoa com seus endereços (requer role `ADMIN`).
 - `DELETE /persons/{id}`: Exclui uma pessoa (requer role `ADMIN`).
+
+## JSON Schema Login
+
+URL: https://desafio-spring-api-979569748830.us-central1.run.app/login
+
+````json
+{
+  "userName": "",
+  "password": ""
+}
+````
+
+## JSON Schema Person (POST AND PUT)
+
+URL: https://desafio-spring-api-979569748830.us-central1.run.app/persons
+
+````json
+{
+  "fullName" : "string",
+  "phone" : "string",
+  "email" : "string",
+  "address": [
+    {
+      "street": "string",
+      "number": "string",
+      "complement": "string",
+      "neighborhood": "string",
+      "city": "string",
+      "state": "string",
+      "zipCode": "string"
+    }
+  ]
+}
+````
+
+## JSON Schema Person (GET)
+
+URL: https://desafio-spring-api-979569748830.us-central1.run.app/persons
+
+````json
+[
+  {
+    "id": "UUID",
+    "fullName": "string",
+    "phone": "string",
+    "email": "string",
+    "addresses": [
+      {
+        "id": "UUID",
+        "fullQualifiedAddress": "string"
+      }
+    ]
+  }
+]
+````
